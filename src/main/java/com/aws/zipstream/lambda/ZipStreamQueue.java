@@ -24,7 +24,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * A queue that uses multiple threads to write to S3, blocking when full
  * to prevent out of memory situations when the writer threads can't keep
- * up with the reader therad.
+ * up with the reader thread.
  */
 public class ZipStreamQueue
 {
@@ -34,6 +34,13 @@ public class ZipStreamQueue
     private final ArrayList<Thread> threads = new ArrayList<>();
     private final ArrayList<ZipProcessor> processors = new ArrayList<>();
 
+    /**
+     * Creates a new queue with the requested number of worker threads and
+     * maximum queue length.
+     * @param threadCount the number of threads
+     * @param queueLength the queue length
+     * @param s3 the S3 client to use to write with
+     */
     public ZipStreamQueue(int threadCount, int queueLength, AmazonS3 s3)
     {
         this.threadCount = threadCount;

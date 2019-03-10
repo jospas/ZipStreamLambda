@@ -39,7 +39,7 @@ public class ZipProcessor implements Runnable
     private long bytesProcessed = 0L;
 
     /**
-     * CReates a new processor
+     * Creates a new processor
      * @param threadId the thread index
      * @param s3 the S3 client
      * @param queue the queue to poll
@@ -52,8 +52,8 @@ public class ZipProcessor implements Runnable
     }
 
     /**
-     * Read messages form the queue blocking briefly when no data is available
-     * and cleanly exiting when requested and there si no data on the queue
+     * Read messages from the queue blocking briefly when no data is available
+     * and cleanly exiting when requested and there is no data on the queue
      * to process.
      */
     @Override
