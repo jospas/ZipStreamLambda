@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "An AWS lambda function that filters and expands large ZIP files from S3 back into S3"
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  InputBucketParameter:
+    Type: String
+    Default: "aws-zipstreamlambda-input"
+    Description: Enter the S3 bucket name to listen for zip file in
+
+  InputKeyPrefixParameter:
+    Type: String
+    Default: input/
+    Description: Enter the S3 key prefix to listen under
+
+  OutputBucketParameter:
+    Type: String
+    Default: "aws-zipstreamlambda-output"
+    Description: Enter the S3 bucket name to expand zips
+
+  OutputKeyPrefixParameter:
+    Type: String
+    Default: output/
+    Description: Enter the S3 output key prefix to expand zips
+
+  ThreadCountParameter:
+    Type: Number
+    Default: 10
+    MinValue: 1
+    MaxValue: 20
+    Description: Enter the number of threads to write back to S3 with
+
+  QueueLengthParameter:
+    Type: Number
+    Default: 20
+    MinValue: 1
+    MaxValue: 40
+    Description: Enter the maximum queue length for zip file entries
+
+  FileExtensionsParameter:
+    Type: String
+    Default: "xml"
+    Description: Enter a comma separated list of case insensitive file extensions (no dot) to extract
+
+Resources:
+
+  ZipStreamLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      RoleName: !Sub "${AWS::StackName}-ZipStreamLambdaRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Action:
+              - "sts:AssumeRole"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+  ZipStreamLambdaPolicy:
+    Type: "AWS::IAM::Policy"
+    DependsOn: [ZipStreamLambdaRole]
+    Properties:
+      PolicyName: !Sub "${AWS::StackName}-ZipStreamLambdaPolicy"
+      Roles: [!Ref ZipStreamLambdaRole]
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: [
+            "s3:*"
+          ]
+          Resource:
+            - !Sub "arn:aws:s3:::${InputBucketParameter}"
+            - !Sub "arn:aws:s3:::${InputBucketParameter}/*"
+            - !Sub "arn:aws:s3:::${OutputBucketParameter}"
+            - !Sub "arn:aws:s3:::${OutputBucketParameter}/*"
+        - Effect: Allow
+          Action: [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+          ]
+          Resource:
+            - "arn:aws:logs:*:*:*"
+
+  ZipStreamLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-zipstreamlambda"
+      Handler: com.aws.zipstream.lambda.ZipStreamLambda
+      Runtime: java8
+      Timeout: 900
+      MemorySize: 1024
+      CodeUri: target/ZipStreamLambda-1.0-SNAPSHOT.jar
+      Role: !GetAtt ZipStreamLambdaRole.Arn
+      Events:
+        ZipFileCreatedEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref InputS3Bucket
+            Events: "s3:ObjectCreated:*"
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: !Sub ${InputKeyPrefixParameter}
+                  - Name: suffix
+                    Value: .zip
+      Environment:
+        Variables:
+          FILE_EXTENSIONS: !Sub "${FileExtensionsParameter}"
+          OUTPUT_BUCKET_NAME: !Sub "${OutputBucketParameter}"
+          OUTPUT_KEY_PREFIX: !Sub "${OutputKeyPrefixParameter}"
+          THREAD_COUNT: !Sub "${ThreadCountParameter}"
+          QUEUE_LENGTH: !Sub "${QueueLengthParameter}"
+
+  OutputS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${OutputBucketParameter}
+
+  InputS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${InputBucketParameter}
+
+Outputs:
+  InputBucket:
+      Description: The input bucket name
+      Value: !Ref InputS3Bucket
+      Export:
+        Name: !Sub "${AWS::StackName}-input-bucket"
+
+  OutputBucket:
+      Description: The output bucket name
+      Value: !Ref OutputS3Bucket
+      Export:
+        Name: !Sub "${AWS::StackName}-output-bucket"
