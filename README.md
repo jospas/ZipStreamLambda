@@ -41,9 +41,9 @@ There are several tunable parameters most with sane defaults (all parameter name
 | Parameter | Default | Validation | Description |
 | --- | --- | --- | --- |
 | InputBucket | None | Required | The input S3 bucket to listen for ZIP file object creation and process. |
-| InputKeyPrefix | None | Required | The input S3 key prefix to listen for ZIP file creation under. |
+| InputKeyPrefix | "input/" | Required | The input S3 key prefix to listen for ZIP file creation under. |
 | OutputBucket | None | Required | The output S3 bucket to write expanded ZIP file contents into. |
-| OutputKeyPrefix | None | Required | A prefix key to use to write extracted zip file contents into. |
+| OutputKeyPrefix | "output/" | Required | A prefix key to use to write extracted zip file contents into. |
 | ThreadCount | 10 | [1 - 20] | The umber of worker threads to use to process the ZIP file entry queue and write to S3. |
 | QueueLength | 20 | [1-40] | The length of the blocking queue to hold ZIP file entries before flushing to S3. |
 | FileExtensions | "xml" | Optional | Comma separated list of file extensions. If provided, ZIP file contents will be filtered using these case insensitive extensions. If not provided all files are extracted. |
@@ -58,7 +58,7 @@ aws cloudformation package \
     --output-template-file zipstreamlambda-output.yaml \
     --s3-bucket <s3 bucket> \
     --s3-prefix <s3 key prefix> \
-    --profile <aws profile> \
+    --profile <profile name> \
     --force-upload
 ```
 
@@ -70,7 +70,7 @@ aws cloudformation package \
     --output-template-file zipstreamlambda-output.yaml \
     --s3-bucket aws-extractor-ap-southeast-2 \
     --s3-prefix apps/zipstreamlambda/deploy \
-    --profile aws-josh \
+    --profile <profile name> \
     --force-upload
 ```
 
@@ -79,10 +79,13 @@ The deploy your packaged AWS CloudFormation stack with:
 ```bash
 aws cloudformation deploy \
     --template-file zipstreamlambda-output.yaml \
-    --profile <aws profile> \
+    --profile <profile name> \
     --capabilities CAPABILITY_NAMED_IAM \
     --region <aws region> \
-    --stack-name <stack name>
+    --stack-name <stack name> \
+    --parameter-overrides \
+    	InputBucketParameter=<input bucket name> \
+    	OutputBucketParameter=<output bucket name>
 ```
 
 For example:
@@ -90,10 +93,13 @@ For example:
 ```bash
 aws cloudformation deploy \
     --template-file zipstreamlambda-output.yaml \
-    --profile aws-josh \
+    --profile <profile name> \
     --capabilities CAPABILITY_NAMED_IAM \
     --region ap-southeast-2 \
-    --stack-name zipstreamlambda
+    --stack-name zipstreamlambda \
+    --parameter-overrides \
+    	InputBucketParameter=aws-zipstreamlambda-input \
+    	OutputBucketParameter=aws-zipstreamlambda-output
 ```
 
 Note: this needs --capabilities CAPABILITY_NAMED_IAM as it creates a role for AWS Lambda.
@@ -107,7 +113,7 @@ Or using the AWS CLI:
 ```bash
 aws cloudformation delete-stack \
     --stack-name <stack name> \
-    --profile <aws profile name> \
+    --profile <profile name> \
     --region <aws region>
 ```
 
@@ -116,7 +122,7 @@ For example:
 ```bash
 aws cloudformation delete-stack \
     --stack-name zipstreamlambda \
-    --profile aws-josh \
+    --profile <profile name> \
     --region ap-southeast-2
 ```
 

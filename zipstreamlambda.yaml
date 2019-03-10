@@ -5,7 +5,6 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
   InputBucketParameter:
     Type: String
-    Default: "aws-zipstreamlambda-input"
     Description: Enter the S3 bucket name to listen for zip file in
 
   InputKeyPrefixParameter:
@@ -15,7 +14,6 @@ Parameters:
 
   OutputBucketParameter:
     Type: String
-    Default: "aws-zipstreamlambda-output"
     Description: Enter the S3 bucket name to expand zips
 
   OutputKeyPrefixParameter:
@@ -69,11 +67,16 @@ Resources:
         Statement:
         - Effect: Allow
           Action: [
-            "s3:*"
+            "s3:GetObject"
           ]
           Resource:
             - !Sub "arn:aws:s3:::${InputBucketParameter}"
             - !Sub "arn:aws:s3:::${InputBucketParameter}/*"
+        - Effect: Allow
+          Action: [
+            "s3:PutObject"
+          ]
+          Resource:
             - !Sub "arn:aws:s3:::${OutputBucketParameter}"
             - !Sub "arn:aws:s3:::${OutputBucketParameter}/*"
         - Effect: Allow
