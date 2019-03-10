@@ -11,13 +11,13 @@ There is a balance between the amount of memory allocated to a Lambda function a
 
 ### Implementation
 
-The system reads zip file fragments from an S3 input stream and buffers the raw bytes of these on a LinkedBlockingQueue. A pool of threads is used to push fragments back to S3, and the reader thread will block if the buffer queue is full.
+The system reads ZIP file fragments from an S3 input stream and buffers the raw bytes of these on a LinkedBlockingQueue. A pool of threads is used to push fragments back to S3, and the reader thread will block if the buffer queue is full.
 
-Zip file contents can optionally be filtered by file name extension, if an extension filter is not provided all zip file contents will be extracted.
+ZIP file contents can optionally be filtered by file name extension, if an extension filter is not provided all ZIP file contents will be extracted.
 
-Thread count and queue size are parameters than can be tuned at deployment time but the assumption here is that the zip file to be processed contains many small files not several huge files.
+Thread count and queue size are parameters than can be tuned at deployment time but the assumption here is that the ZIP file to be processed contains many small files not several huge files.
 
-If you have large files containing large files, you may need to reduce the queue length and increase the memory available to the function.
+If you have large ZIP files containing large files, you may need to reduce the queue length and increase the memory available to the function.
 
 The input file name minus the extension is appended to OutputKeyPrefix parameter to determine the prefix for output files in the S3 bucket provided in OutputBucket.
 
@@ -43,7 +43,7 @@ There are several tunable parameters most with sane defaults (all parameter name
 | InputBucket | None | Required | The input S3 bucket to listen for ZIP file object creation and process. |
 | InputKeyPrefix | "input/" | Required | The input S3 key prefix to listen for ZIP file creation under. |
 | OutputBucket | None | Required | The output S3 bucket to write expanded ZIP file contents into. |
-| OutputKeyPrefix | "output/" | Required | A prefix key to use to write extracted zip file contents into. |
+| OutputKeyPrefix | "output/" | Required | A prefix key to use to write extracted ZIP file contents into. |
 | ThreadCount | 10 | [1 - 20] | The umber of worker threads to use to process the ZIP file entry queue and write to S3. |
 | QueueLength | 20 | [1-40] | The length of the blocking queue to hold ZIP file entries before flushing to S3. |
 | FileExtensions | "xml" | Optional | Comma separated list of file extensions. If provided, ZIP file contents will be filtered using these case insensitive extensions. If not provided all files are extracted. |
