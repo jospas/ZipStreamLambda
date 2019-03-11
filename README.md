@@ -5,7 +5,7 @@ large ZIP files from Amazon S3, using AWS Lambda, exploding filtered contents ba
 
 ### Introduction
 
-This project aims to demonstrate how to use Java streams to extract large filtered large ZIP files from S3 as fast as possible, using little memory and multiple threads, from within a Lambda function.
+This project aims to demonstrate how to use Java streams to extract large filtered ZIP files from S3 as fast as possible, using minimal memory and multiple threads from within a Lambda function.
 
 There is a balance between the amount of memory allocated to a Lambda function and the amount of vCPU and network available to the function. Current tests indicate that a minimum of 1G should be allocated to the function to achieve high network throughput and multithreading capabilities.
 
